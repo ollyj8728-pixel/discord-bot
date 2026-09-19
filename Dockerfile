@@ -9,7 +9,7 @@ ENV UV_COMPILE_BYTECODE=1 \
 # Install project dependencies with build tools available
 WORKDIR /build
 
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv \
   --mount=type=bind,source=uv.lock,target=uv.lock \
   --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
   uv sync --frozen --no-dev
@@ -23,8 +23,6 @@ ARG git_sha="development"
 ENV GIT_SHA=$git_sha
 
 # Install dependencies from build cache
-# .venv not put in /app so that it doesn't conflict with the dev
-# volume we use to avoid rebuilding image every code change locally
 COPY --from=builder /build /build
 ENV PATH="/build/.venv/bin:$PATH"
 
