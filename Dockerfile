@@ -6,11 +6,12 @@ COPY --from=ghcr.io/astral-sh/uv:0.9 /uv /bin/
 ENV UV_COMPILE_BYTECODE=1 \
   UV_LINK_MODE=copy
 
-# Install project dependencies with build tools available
+# Install project dependencies with build tools available.
+# Railway Metal builders reject generic cache IDs, so this intentionally
+# omits the optional cache mount for portable builds.
 WORKDIR /build
 
-RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv \
-  --mount=type=bind,source=uv.lock,target=uv.lock \
+RUN --mount=type=bind,source=uv.lock,target=uv.lock \
   --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
   uv sync --frozen --no-dev
 
@@ -22,7 +23,7 @@ FROM python:$python_version
 ARG git_sha="development"
 ENV GIT_SHA=$git_sha
 
-# Install dependencies from build cache
+# Install dependencies from build stage
 COPY --from=builder /build /build
 ENV PATH="/build/.venv/bin:$PATH"
 
